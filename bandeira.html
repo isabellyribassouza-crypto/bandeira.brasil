@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Bandeira do Brasil</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #e9ecef;
+        }
+        canvas {
+            box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+        }
+    </style>
+</head>
+<body>
+
+    <canvas id="bandeira" width="1000" height="700"></canvas>
+
+    <script>
+        const canvas = document.getElementById('bandeira');
+        const ctx = canvas.getContext('2d');
+
+        // Proporções oficiais (20 módulos x 14 módulos)
+        const w = canvas.width;
+        const h = canvas.height;
+        const m = w / 20; // 1 módulo = 50px
+        const cx = w / 2;
+        const cy = h / 2;
+
+        // 1. Retângulo Verde Oficial (#009c3b)
+        ctx.fillStyle = '#009c3b';
+        ctx.fillRect(0, 0, w, h);
+
+        // 2. Losango Amarelo Oficial (#ffdf00)
+        const dist = 1.7 * m;
+        ctx.fillStyle = '#ffdf00';
+        ctx.beginPath();
+        ctx.moveTo(cx, dist);          // Topo
+        ctx.lineTo(w - dist, cy);      // Direita
+        ctx.lineTo(cx, h - dist);      // Base
+        ctx.lineTo(dist, cy);          // Esquerda
+        ctx.closePath();
+        ctx.fill();
+
+        // 3. Círculo Azul Oficial (#002776)
+        const raioCirculo = 3.5 * m;
+        ctx.fillStyle = '#002776';
+        ctx.beginPath();
+        ctx.arc(cx, cy, raioCirculo, 0, Math.PI * 2);
+        ctx.fill();
+
+        // 4. Faixa Branca e Texto "ORDEM E PROGRESSO" centralizado
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(cx, cy, raioCirculo, 0, Math.PI * 2);
+        ctx.clip(); // Corta tudo que sair do círculo azul
+
+        // Centro e raio do arco da faixa branca (proporção oficial)
+        const arcoX = cx - (2.0 * m);
+        const arcoY = cy + (7.0 * m);
+        const arcoRaio = 8.25 * m;
+
+        // Desenha a faixa branca
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 0.5 * m;
+        ctx.beginPath();
+        ctx.arc(arcoX, arcoY, arcoRaio, Math.PI * 1.2, Math.PI * 1.85);
+        ctx.stroke();
+
+        // Configura a fonte do lema
+        const texto = "ORDEM E PROGRESSO";
+        ctx.fillStyle = '#009c3b';
+        ctx.font = `bold ${0.33 * m}px Arial, Helvetica, sans-serif`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+
+        // Cálculo automático para centralizar o texto no meio visível da faixa
+        const anguloCentroVisivel = Math.atan2(cy - arcoY, cx - arcoX) - 0.035;
+        const espacamento = 0.043; // Espaçamento angular proporcional entre letras
+        const anguloTotal = (texto.length - 1) * espacamento;
+        const anguloInicial = anguloCentroVisivel - (anguloTotal / 2);
+
+        for (let i = 0; i < texto.length; i++) {
+            const angulo = anguloInicial + (i * espacamento);
+
+            ctx.save();
+            ctx.translate(
+                arcoX + Math.cos(angulo) * arcoRaio,
+                arcoY + Math.sin(angulo) * arcoRaio
+            );
+            ctx.rotate(angulo + Math.PI / 2);
+            // Pequeno ajuste vertical (1.5px) para o centro óptico da letra ficar cravado na faixa
+            ctx.fillText(texto[i], 0, 0.02 * m);
+            ctx.restore();
+        }
+        ctx.restore();
+
+        // 5. Função para desenhar estrelas de 5 pontas
+        function desenharEstrela(x, y, raioExt) {
+            const raioInt = raioExt * 0.382;
+            let rot = (Math.PI / 2) * 3;
+            const passo = Math.PI / 5;
+
+            ctx.beginPath();
+            ctx.moveTo(x, y - raioExt);
+            for (let i = 0; i < 5; i++) {
+                ctx.lineTo(x + Math.cos(rot) * raioExt, y + Math.sin(rot) * raioExt);
+                rot += passo;
+                ctx.lineTo(x + Math.cos(rot) * raioInt, y + Math.sin(rot) * raioInt);
+                rot += passo;
+            }
+            ctx.closePath();
+            ctx.fillStyle = '#ffffff';
+            ctx.fill();
+        }
+
+        // 6. As 27 Estrelas (posicionadas como na imagem)
+        const estrelas = [
+            // Espiga (única acima da faixa)
+            { x: 0.78, y: -1.15, r: 0.14 },
+
+            // Cruzeiro do Sul (centro)
+            { x: -0.05, y: 0.48,  r: 0.14 }, // Magalhães
+            { x: -0.05, y: -0.58, r: 0.13 }, // Rubídea
+            { x: -0.48, y: -0.15, r: 0.13 }, // Pálida
+            { x: 0.42,  y: -0.12, r: 0.13 }, // Intrometida
+            { x: 0.15,  y: 0.08,  r: 0.08 }, // Epsilon
+
+            // Procyon e Cão Maior (lado esquerdo)
+            { x: -2.05, y: -0.65, r: 0.14 }, // Procyon
+            { x: -2.18, y: 0.75,  r: 0.14 }, // Sirius
+            { x: -2.65, y: 0.62,  r: 0.11 }, // Mirzam
+            { x: -1.85, y: 0.48,  r: 0.07 }, // Muliphein
+            { x: -1.65, y: 1.05,  r: 0.12 }, // Wezen
+            { x: -1.80, y: 1.45,  r: 0.11 }, // Adhara
+            { x: -1.25, y: 1.75,  r: 0.11 }, // Furud
+
+            // Canopus
+            { x: -1.15, y: 0.15,  r: 0.14 },
+
+            // Escorpião (lado direito inferior)
+            { x: 1.85, y: 0.95, r: 0.14 }, // Antares
+            { x: 2.15, y: 0.75, r: 0.11 }, // Graffias
+            { x: 2.35, y: 1.15, r: 0.11 }, // Dschubba
+            { x: 2.25, y: 1.50, r: 0.11 }, // Wei
+            { x: 1.85, y: 1.65, r: 0.12 }, // Sargas
+            { x: 1.55, y: 1.45, r: 0.11 }, // Apollyon
+            { x: 1.25, y: 1.55, r: 0.12 }, // Shaula
+            { x: 1.45, y: 1.85, r: 0.08 }, // Lesath
+
+            // Triângulo Austral (abaixo do Cruzeiro à direita)
+            { x: 0.85, y: 1.85, r: 0.12 }, // Atria
+            { x: 0.55, y: 1.55, r: 0.11 }, // Beta Trianguli
+            { x: 1.05, y: 1.50, r: 0.11 }, // Gamma Trianguli
+
+            // Hidra Fêmea
+            { x: 0.65, y: -0.45, r: 0.10 },
+
+            // Sigma Octantis (estrela bem pequena na base)
+            { x: -0.02, y: 2.45, r: 0.05 }
+        ];
+
+        estrelas.forEach(e => {
+            desenharEstrela(cx + (e.x * m), cy + (e.y * m), e.r * m);
+        });
+    </script>
+</body>
+</html>
